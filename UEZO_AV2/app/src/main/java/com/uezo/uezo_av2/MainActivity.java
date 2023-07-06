@@ -51,13 +51,13 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "Por favor insira todos os campos", Toast.LENGTH_SHORT).show();
                 } else {
                     if (pass.equals(repass)) {
-                        Boolean checkuser = APIUtilities.checkUsername(user, String.format("%s%s", "http://192.168.0.15:8080/users/", user));
+                        Boolean checkuser = APIUtilities.checkUsername(user, String.format("%s/%s", Globals.ServerAddress, user));
                         if (!checkuser) {
                             User newUser = new User();
                             newUser.setPassword(pass);
                             newUser.setUsername(user);
                             String userJson = gson.toJson(newUser);
-                            String insert = UserAPI.executeInBackground(() -> UserAPI.PostRequest("http://192.168.0.15:8080/users", userJson));
+                            String insert = UserAPI.executeInBackground(() -> UserAPI.PostRequest(Globals.ServerAddress, userJson));
                             assert insert != null;
                             if (!insert.equals("true")) {
                                 Toast.makeText(MainActivity.this, "Cadastro concluido", Toast.LENGTH_SHORT).show();

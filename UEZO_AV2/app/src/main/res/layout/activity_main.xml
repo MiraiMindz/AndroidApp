@@ -11,39 +11,41 @@
         android:id="@+id/username"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="User Name"
-        android:layout_marginTop="50dp"/>
+        android:layout_marginTop="50dp"
+        android:hint="Nome de Usuário" />
 
     <EditText
         android:id="@+id/password"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Password"
+        android:layout_below="@+id/username"
         android:layout_marginTop="50dp"
-        android:layout_below="@+id/username"/>
+        android:hint="Senha"
+        android:inputType="textPassword" />
 
     <EditText
         android:id="@+id/repassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Retype Password"
+        android:layout_below="@+id/password"
         android:layout_marginTop="50dp"
-        android:layout_below="@+id/password"/>
+        android:hint="Redigite a senha"
+        android:inputType="textPassword" />
 
     <Button
         android:id="@+id/btnsignup"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Register"
+        android:layout_below="@+id/repassword"
         android:layout_marginTop="50dp"
-        android:layout_below="@+id/repassword"/>
+        android:text="Registrar-se" />
 
     <Button
         android:id="@+id/btnsignin"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Existing user! Go to Sign in page"
+        android:layout_below="@+id/btnsignup"
         android:layout_marginTop="50dp"
-        android:layout_below="@+id/btnsignup"/>
+        android:text="Entrar" />
 
 </RelativeLayout>

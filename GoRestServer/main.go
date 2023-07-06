@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+    "flag"
+    "fmt"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3"
@@ -138,6 +140,7 @@ func main() {
 	router.POST("/users", postUsers)
 	router.GET("/users/:username", getUserByUsername)
 
-	//router.Run("localhost:8080")
-    router.Run("192.168.0.15:8080")
+    setPort := flag.String("url", "localhost", "sets the URL")
+    flag.Parse()
+    router.Run(fmt.Sprintf("%s:8080", *setPort))
 }

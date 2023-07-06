@@ -31,12 +31,14 @@ public class Login extends AppCompatActivity {
         btnlogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String user = username.getText().toString();
-                String pass = password.getText().toString();
+                String user = HashUtils.hashString(username.getText().toString());
+                String pass = HashUtils.hashString(password.getText().toString());
+                assert user != null;
+                assert pass != null;
                 if (user.equals("") || pass.equals("")) {
                     Toast.makeText(Login.this, "Por favor insira todos os campos", Toast.LENGTH_SHORT).show();
                 } else {
-                    Boolean checkUserPassword = APIUtilities.checkUsernamePassword(user, pass, String.format("%s%s", "http://192.168.0.15:8080/users/", user));
+                    Boolean checkUserPassword = APIUtilities.checkUsernamePassword(user, pass, String.format("%s/%s", Globals.ServerAddress, user));
                     if (checkUserPassword) {
                         Toast.makeText(Login.this, "Login Concluido", Toast.LENGTH_SHORT).show();
                         Intent intent = new Intent(getApplicationContext(), Home.class);
