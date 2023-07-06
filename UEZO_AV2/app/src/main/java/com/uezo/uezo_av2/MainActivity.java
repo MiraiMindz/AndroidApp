@@ -9,11 +9,18 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+
+import java.util.concurrent.atomic.AtomicReference;
+
+
 public class MainActivity extends AppCompatActivity {
 
     EditText username, password, repassword;
     Button signin, signup;
     UserAPI restAPI;
+    APIUtils APIUtilities;
+    Gson gson;
 
 
     @Override
@@ -25,24 +32,34 @@ public class MainActivity extends AppCompatActivity {
         repassword = (EditText) findViewById(R.id.repassword);
         signin = (Button) findViewById(R.id.btnsignin);
         signup = (Button) findViewById(R.id.btnsignup);
-        restAPI = new UserAPI(this);
+        restAPI = new UserAPI();
+        gson = new Gson();
+        APIUtilities = new APIUtils();
 
 
         signup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String user = username.getText().toString();
-                String pass = password.getText().toString();
-                String repass = repassword.getText().toString();
+                String user = HashUtils.hashString(username.getText().toString());
+                String pass = HashUtils.hashString(password.getText().toString());
+                String repass = HashUtils.hashString(repassword.getText().toString());
+                assert user != null;
+                assert pass != null;
+                assert repass != null;
 
                 if (user.equals("") || pass.equals("") || repass.equals("")) {
                     Toast.makeText(MainActivity.this, "Por favor insira todos os campos", Toast.LENGTH_SHORT).show();
                 } else {
                     if (pass.equals(repass)) {
-                        Boolean checkuser = restAPI.checkUsername(user);
+                        Boolean checkuser = APIUtilities.checkUsername(user, String.format("%s%s", "http://192.168.0.15:8080/users/", user));
                         if (!checkuser) {
-                            Boolean insert = restAPI.addUser(user, pass);
-                            if (insert) {
+                            User newUser = new User();
+                            newUser.setPassword(pass);
+                            newUser.setUsername(user);
+                            String userJson = gson.toJson(newUser);
+                            String insert = UserAPI.executeInBackground(() -> UserAPI.PostRequest("http://192.168.0.15:8080/users", userJson));
+                            assert insert != null;
+                            if (!insert.equals("true")) {
                                 Toast.makeText(MainActivity.this, "Cadastro concluido", Toast.LENGTH_SHORT).show();
                                 Intent intent = new Intent(getApplicationContext(), Home.class);
                                 startActivity(intent);

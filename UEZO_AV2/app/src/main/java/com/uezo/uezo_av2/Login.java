@@ -13,6 +13,7 @@ public class Login extends AppCompatActivity {
     EditText username, password;
     Button btnlogin;
     UserAPI restAPI;
+    APIUtils APIUtilities;
 
 
     @Override
@@ -23,7 +24,8 @@ public class Login extends AppCompatActivity {
         username = (EditText) findViewById(R.id.username1);
         password = (EditText) findViewById(R.id.password1);
         btnlogin = (Button) findViewById(R.id.btnsignin1);
-        restAPI = new UserAPI(this);
+        restAPI = new UserAPI();
+        APIUtilities = new APIUtils();
 
 
         btnlogin.setOnClickListener(new View.OnClickListener() {
@@ -34,7 +36,7 @@ public class Login extends AppCompatActivity {
                 if (user.equals("") || pass.equals("")) {
                     Toast.makeText(Login.this, "Por favor insira todos os campos", Toast.LENGTH_SHORT).show();
                 } else {
-                    Boolean checkUserPassword = restAPI.checkUsernamePassword(user, pass);
+                    Boolean checkUserPassword = APIUtilities.checkUsernamePassword(user, pass, String.format("%s%s", "http://192.168.0.15:8080/users/", user));
                     if (checkUserPassword) {
                         Toast.makeText(Login.this, "Login Concluido", Toast.LENGTH_SHORT).show();
                         Intent intent = new Intent(getApplicationContext(), Home.class);

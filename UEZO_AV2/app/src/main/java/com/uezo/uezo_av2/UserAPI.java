@@ -131,101 +131,102 @@
 // }
 
 package com.uezo.uezo_av2;
-import android.content.Context;
 
-import com.android.volley.Response;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
-import java.util.concurrent.TimeUnit;
-
-import okhttp3.OkHttpClient;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-
-import retrofit2.Call;
-import retrofit2.http.Body;
-import retrofit2.http.GET;
-import retrofit2.http.POST;
-import retrofit2.http.Path;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class UserAPI {
-    private UserAPIService userAPIService;
-
-    public UserAPI(Context context) {
-        OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
-                .build();
-
-        Gson gson = new GsonBuilder()
-                .setLenient()
-                .create();
-
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://localhost:8080/")
-                .client(okHttpClient)
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .build();
-
-        userAPIService = retrofit.create(UserAPIService.class);
-    }
-    public void getUsers(final Response.Listener<JsonArray> successListener, final Response.ErrorListener errorListener) {
-        Call<JsonArray> call = userAPIService.getUsers();
-        call.enqueue(new Callback<JsonArray>() {
-            @Override
-            public void onResponse(Call<JsonArray> call, Response<JsonArray> response) {
-                if (response.isSuccessful()) {
-                    successListener.onResponse(response.body());
-                } else {
-                    errorListener.onErrorResponse(new VolleyError("Request failed"));
-                }
-            }
-
-            @Override
-            public void onFailure(Call<JsonArray> call, Throwable t) {
-                errorListener.onErrorResponse(new VolleyError(t));
-            }
-        });
+    interface NetworkRequestTask {
+        String performRequest() throws IOException;
     }
 
-    public void getUserByUsername(String username, final Response.Listener<JsonObject> successListener, final Response.ErrorListener errorListener) {
-        Call<JsonObject> call = userAPIService.getUserByUsername(username);
-        call.enqueue(new Callback<JsonObject>() {
-            @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                if (response.isSuccessful()) {
-                    successListener.onResponse(response.body());
-                } else {
-                    errorListener.onErrorResponse(new VolleyError("Request failed"));
-                }
-            }
 
-            @Override
-            public void onFailure(Call<JsonObject> call(Call<JsonObject> call, Throwable t) {
-                errorListener.onErrorResponse(new VolleyError(t));
-            }
-        });
-    }
+    public static String executeInBackground(NetworkRequestTask task) {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
 
-    public boolean addUser(String username, String password) {
-        JsonObject requestBody = new JsonObject();
-        requestBody.addProperty("username", username);
-        requestBody.addProperty("password", password);
+        Future<String> future = executor.submit(task::performRequest);
 
-        Call<Void> call = userAPIService.addUser(requestBody);
         try {
-            Response<Void> response = call.execute();
-            return response.isSuccessful();
+            return future.get();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            executor.shutdown();
+        }
+
+        return null;
+    }
+    public static String GetRequest(String urlAddress) {
+        StringBuilder response = new StringBuilder();
+
+        try {
+            URL url = new URL(urlAddress);
+            System.out.println(urlAddress);
+            System.out.println(url);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+
+            System.out.println(connection);
+            int responseCode = connection.getResponseCode();
+            System.out.println(responseCode);
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                String line;
+
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
+                    System.out.println(line);
+                }
+                reader.close();
+            } else {
+                System.out.println("HTTP request failed with response code: " + responseCode);
+                System.out.println(responseCode);
+                response.append("NULL");
+            }
+
+            connection.disconnect();
         } catch (IOException e) {
             e.printStackTrace();
-            return false;
         }
+
+        return response.toString();
+    }
+
+    public static String PostRequest(String endpointUrl, String jsonPayload) {
+        String success = "false";
+
+        try {
+            URL url = new URL(endpointUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setDoOutput(true);
+
+            try (OutputStream outputStream = connection.getOutputStream()) {
+                byte[] input = jsonPayload.getBytes(StandardCharsets.UTF_8);
+                outputStream.write(input, 0, input.length);
+            }
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                success = "true";
+            } else {
+                System.out.println("HTTP request failed with response code: " + responseCode);
+            }
+
+            connection.disconnect();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return success;
     }
 }
